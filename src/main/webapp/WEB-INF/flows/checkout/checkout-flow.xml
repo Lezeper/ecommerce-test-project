@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
+
+    <var name="order" class="com.imlewis.dailyshop.model.CustomerOrder" />
+    <var name="cart" class="com.imlewis.dailyshop.model.Cart" />
+    <var name="address" class="com.imlewis.dailyshop.model.CustomerAddress" />
+
+    <action-state id="addCartToOrder">
+        <evaluate expression="cartDaoImp.validate(requestParameters.cartId)" result="cart" />
+        <transition to="InvalidCartWarning" on-exception="java.io.IOException" />
+        <transition to="findAllshippingAddress" />
+    </action-state>
+
+    <action-state id="findAllshippingAddress">
+        <evaluate expression="customerAddressDaoImp.getAllShippingAddressByCustomerId(cart.customer.customerId)" result="address" />
+        <transition to="collectCustomerInfo" />
+    </action-state>
+
+    <view-state id="collectCustomerInfo" view="collectCustomerInfo.jsp" model="order">
+        <transition on="customerInfoCollected" to="orderConfirmation" />
+    </view-state>
+
+    <view-state id="orderConfirmation">
+        <transition on="orderConfirmed" to="createCustomerOrder" />
+        <transition on="backToCollectCustomerInfo" to="collectCustomerInfo" />
+    </view-state>
+
+    <action-state id="createCustomerOrder">
+        <evaluate expression="customerOrderServiceImp.addOrderDumpCart(order, cart)" />
+        <transition to="processOrder" />
+    </action-state>
+
+    <action-state id="processOrder">
+        <evaluate expression="cartItemDaoImp.removeAllCartItems(cart)" />
+        <transition to="thankCustomer" />
+    </action-state>
+
+    <view-state id="thankCustomer" model="order">
+        <transition to="endState" />
+    </view-state>
+
+    <end-state id="endState" />
+
+    <view-state id="InvalidCartWarning">
+        <transition to="endState" />
+    </view-state>
+
+    <end-state id="cancelCheckout" view="checkoutCancelled.jsp" />
+
+    <global-transitions>
+        <transition on="cancel" to="cancelCheckout" />
+    </global-transitions>
+</flow>
