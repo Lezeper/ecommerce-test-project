@@ -1,5 +1,8 @@
 # JEE eCommerce Practice
 
+###IDE
+		IntelliJ IDEA 2016.1.1
+
 #####Dependencies			
 		Spring Framework 4.2.5
 		Spring Security 4.0.3
